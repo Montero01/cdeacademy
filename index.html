@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDI | CDE Blindex</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --cde-laranja: #E87722;
+      --cde-laranja-escuro: #D4650F;
+      --cde-vermelho: #C8102E;
+      --cde-vermelho-escuro: #A00D24;
+      --cde-grafite: #414042;
+      --cde-grafite-claro: #6D6E71;
+      --gradiente-marca: linear-gradient(135deg, #E87722 0%, #C8102E 100%);
+      --branco: #FFFFFF;
+      --roxo-escuro: #2E1065;
+      --roxo-medio: #5B21B6;
+      --roxo-claro: #7C3AED;
+      --roxo-glow-1: rgba(139, 92, 246, 0.30);
+      --roxo-glow-2: rgba(76, 29, 149, 0.45);
+      --cinza-fundo: #F5F6F8;
+      --cinza-borda: #E4E6EB;
+      --sombra-card: 0 2px 12px rgba(65, 64, 66, 0.08);
+      --sombra-roxa: 0 8px 32px rgba(46, 16, 101, 0.25);
+      --setor-comercial: #2563EB;
+      --setor-comercial-bg: #E7EEFC;
+      --setor-producao: #0E7490;
+      --setor-producao-bg: #E0F4F8;
+      --setor-administrativo: #7C3AED;
+      --setor-administrativo-bg: #F0EAFB;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--cde-grafite);
+      padding: 20px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      background:
+        radial-gradient(circle at 15% 0%,  var(--roxo-glow-1) 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, var(--roxo-glow-2) 0%, transparent 50%),
+        linear-gradient(135deg, var(--roxo-escuro) 0%, var(--roxo-medio) 55%, var(--roxo-claro) 100%);
+      background-attachment: fixed;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; width: 100%; flex: 1; }
+
+    .brand-bar {
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255, 255, 255, 0.98);
+      padding: 18px 26px; margin-bottom: 20px;
+      border-radius: 16px; box-shadow: var(--sombra-roxa);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 4px solid transparent;
+      border-image: var(--gradiente-marca) 1; border-image-slice: 1;
+    }
+    .brand-bar img { max-width: 340px; width: 100%; height: auto; display: block; }
+
+    #login-view {
+      max-width: 420px; margin: 20px auto 60px;
+      background: var(--branco); padding: 36px 32px;
+      border-radius: 16px; box-shadow: var(--sombra-roxa);
+      border-top: 5px solid transparent;
+      border-image: var(--gradiente-marca) 1; border-image-slice: 1;
+    }
+    #login-view h1 { font-size: 1.5rem; margin-bottom: 6px; text-align: center; color: var(--cde-grafite); font-weight: 700; }
+    #login-view p { color: var(--cde-grafite-claro); margin-bottom: 24px; text-align: center; font-size: 0.9rem; }
+
+    input, select, textarea, button {
+      width: 100%; padding: 12px 14px; margin-bottom: 12px;
+      border: 1.5px solid var(--cinza-borda); border-radius: 10px;
+      font-size: 1rem; font-family: inherit;
+      background: var(--branco); color: var(--cde-grafite);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--cde-laranja);
+      box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.15);
+    }
+    input:disabled, select:disabled {
+      background: #F5F6F8; color: var(--cde-grafite-claro);
+      cursor: not-allowed; opacity: 0.7;
+    }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--cde-grafite); margin-bottom: 6px; }
+
+    button {
+      background: var(--gradiente-marca); color: var(--branco);
+      border: none; cursor: pointer; font-weight: 600;
+      letter-spacing: 0.3px;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(200, 16, 46, 0.2);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(200, 16, 46, 0.3); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: var(--branco); color: var(--cde-grafite);
+      border: 1.5px solid var(--cinza-borda); box-shadow: none;
+    }
+    button.secondary:hover { border-color: var(--cde-laranja); color: var(--cde-laranja-escuro); box-shadow: 0 2px 8px rgba(232, 119, 34, 0.15); }
+    button.success { background: linear-gradient(135deg, #1FA85C 0%, #158A49 100%); box-shadow: 0 2px 8px rgba(31,168,92,0.25); }
+    button.danger  { background: linear-gradient(135deg, #C8102E 0%, #A00D24 100%); }
+    button.small { width: auto; padding: 8px 16px; font-size: 0.85rem; }
+    button[disabled] { cursor: not-allowed !important; opacity: 0.55; }
+
+    .hidden { display: none !important; }
+
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--branco); padding: 20px 24px;
+      border-radius: 14px; box-shadow: var(--sombra-roxa);
+      margin-bottom: 20px; border-left: 5px solid var(--cde-laranja);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .header h1 { font-size: 1.25rem; color: var(--cde-grafite); font-weight: 700; }
+    .header .user-info { font-size: 0.85rem; color: var(--cde-grafite-claro); margin-top: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .header button { width: auto; padding: 8px 18px; font-size: 0.85rem; }
+
+    .tabs {
+      display: flex; gap: 4px; background: var(--branco);
+      border-radius: 14px; padding: 6px; margin-bottom: 20px;
+      overflow-x: auto; scrollbar-width: thin; box-shadow: var(--sombra-roxa);
+    }
+    .tab-btn {
+      width: auto; padding: 10px 18px; margin: 0;
+      background: transparent; color: var(--cde-grafite-claro);
+      border: none; border-radius: 9px; box-shadow: none;
+      font-weight: 600; cursor: pointer;
+      white-space: nowrap; font-size: 0.88rem;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--cde-laranja-escuro); background: #FFF4E5; transform: none; box-shadow: none; }
+    .tab-btn.active {
+      background: var(--gradiente-marca); color: #fff;
+      box-shadow: 0 2px 8px rgba(200, 16, 46, 0.3);
+    }
+
+    .card {
+      background: var(--branco); border-radius: 14px; padding: 24px;
+      box-shadow: var(--sombra-roxa); margin-bottom: 20px;
+      border: 1px solid rgba(65, 64, 66, 0.04);
+    }
+    .card h2 {
+      font-size: 1.05rem; margin-bottom: 16px; color: var(--cde-grafite);
+      display: flex; align-items: center; gap: 8px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--cinza-borda);
+    }
+
+    .sector-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      white-space: nowrap; vertical-align: middle;
+    }
+    .sector-badge.comercial      { background: var(--setor-comercial-bg);      color: var(--setor-comercial); }
+    .sector-badge.producao       { background: var(--setor-producao-bg);       color: var(--setor-producao); }
+    .sector-badge.administrativo { background: var(--setor-administrativo-bg); color: var(--setor-administrativo); }
+    .sector-badge.none           { background: #F0F1F3; color: #6D6E71; }
+
+    .role-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: var(--gradiente-marca); color: #fff;
+    }
+    .role-badge.master {
+      background: linear-gradient(135deg, #FCD34D 0%, #B45309 100%);
+      color: #FFF8E1;
+    }
+
+    .goal-derived {
+      background: linear-gradient(135deg, #FFF9F3 0%, #FFF3E6 100%);
+      border-left: 4px solid var(--cde-laranja) !important;
+      padding-left: 12px; border-radius: 6px;
+    }
+    .goal-derived .title::before { content: "📊 "; }
+
+    .score-box {
+      text-align: center; padding: 24px 20px 20px;
+      background: var(--gradiente-marca); border-radius: 16px;
+      color: var(--branco); margin-bottom: 20px;
+      box-shadow: 0 12px 32px rgba(200, 16, 46, 0.35);
+      position: relative; overflow: hidden;
+    }
+    .score-box::after {
+      content: ""; position: absolute; top: -40%; right: -10%;
+      width: 200px; height: 200px; background: rgba(255,255,255,0.08); border-radius: 50%;
+      pointer-events: none;
+    }
+    .score-box .score-main { position: relative; z-index: 1; margin-bottom: 16px; }
+    .score-box .number { font-size: 3rem; font-weight: 800; line-height: 1; }
+    .score-box .label { font-size: 0.8rem; opacity: 0.95; margin-top: 4px; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; }
+
+    .quarters-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; padding: 14px 0;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      border-bottom: 1px solid rgba(255,255,255,0.25);
+      position: relative; z-index: 1; margin-bottom: 14px;
+    }
+    .quarter-col { text-align: center; position: relative; padding: 4px 0; }
+    .quarter-col .q-label {
+      font-size: 0.62rem; opacity: 0.9; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700;
+    }
+    .quarter-col .q-value { font-size: 1.25rem; font-weight: 800; line-height: 1; }
+    .quarter-col .q-value.empty { opacity: 0.5; font-weight: 600; font-size: 1.1rem; }
+    .quarter-col.current .q-value {
+      background: rgba(255,255,255,0.22); padding: 4px 10px;
+      border-radius: 6px; display: inline-block;
+    }
+    .quarter-col.current::before {
+      content: "ATUAL"; position: absolute;
+      top: -8px; left: 50%; transform: translateX(-50%);
+      font-size: 0.52rem; font-weight: 800; letter-spacing: 0.6px;
+      background: rgba(255,255,255,0.28); padding: 2px 6px;
+      border-radius: 4px; white-space: nowrap;
+    }
+
+    .coefficient-wrap {
+      display: flex; align-items: center; gap: 10px;
+      position: relative; z-index: 1; text-align: left;
+    }
+    .coefficient-wrap .coef-label {
+      font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.6px; font-weight: 700; opacity: 0.92; flex: 1;
+    }
+    .coefficient-wrap .coef-value { font-size: 1.35rem; font-weight: 800; }
+    .coefficient-bar {
+      height: 8px; background: rgba(255,255,255,0.22);
+      border-radius: 4px; overflow: hidden; margin-top: 8px;
+      position: relative; z-index: 1;
+    }
+    .coefficient-bar-fill {
+      height: 100%; background: #FFFFFF; border-radius: 4px;
+      transition: width 0.5s ease; box-shadow: 0 0 8px rgba(255,255,255,0.5);
+    }
+
+    .adherence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .adherence-card {
+      padding: 16px; border-radius: 12px; background: var(--branco);
+      border: 1px solid var(--cinza-borda); border-left: 4px solid var(--cde-laranja);
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .adherence-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-card); }
+    .adherence-card .ad-sector {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--cde-grafite-claro); font-weight: 700; margin-bottom: 8px;
+    }
+    .adherence-card .ad-value { font-size: 1.7rem; font-weight: 800; line-height: 1; color: var(--cde-grafite); margin-bottom: 4px; }
+    .adherence-card .ad-sub { font-size: 0.75rem; color: var(--cde-grafite-claro); }
+    .adherence-bar { height: 6px; background: var(--cinza-fundo); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+    .adherence-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+    .adherence-badge {
+      display: inline-block; padding: 3px 9px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 800; white-space: nowrap;
+    }
+    .adherence-badge.high   { background: #E6F7EE; color: #158A49; }
+    .adherence-badge.mid    { background: #FFF4E5; color: #B35A00; }
+    .adherence-badge.low    { background: #FDE8EB; color: #A00D24; }
+    .adherence-badge.none   { background: #F0F1F3; color: #6D6E71; }
+
+    .sector-compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .sector-compare-card {
+      border-radius: 12px; padding: 18px;
+      background: var(--branco); border: 1px solid var(--cinza-borda);
+      position: relative; overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .sector-compare-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-card); }
+    .sector-compare-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .sector-compare-card.comercial::before      { background: var(--setor-comercial); }
+    .sector-compare-card.producao::before       { background: var(--setor-producao); }
+    .sector-compare-card.administrativo::before { background: var(--setor-administrativo); }
+    .sector-compare-card.mine { box-shadow: 0 0 0 2px var(--cde-laranja), 0 4px 14px rgba(232,119,34,0.2); }
+    .sector-compare-card.mine::after {
+      content: "SEU SETOR"; position: absolute; top: 8px; right: -28px;
+      background: var(--cde-laranja); color: #fff;
+      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.5px;
+      padding: 3px 30px; transform: rotate(35deg);
+    }
+    .sector-compare-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+    .sector-compare-rank {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 34px; height: 26px; padding: 0 8px;
+      background: var(--cinza-fundo); border-radius: 6px;
+      font-size: 0.75rem; font-weight: 800; color: var(--cde-grafite);
+    }
+    .sector-compare-rank.gold   { background: linear-gradient(135deg, #FFD86B, #E8A800); color: #5B3D00; }
+    .sector-compare-rank.silver { background: linear-gradient(135deg, #E2E5EA, #B7BCC4); color: #3E4147; }
+    .sector-compare-rank.bronze { background: linear-gradient(135deg, #E3A277, #B57142); color: #4A2A10; }
+
+    .sector-compare-total { font-size: 1.8rem; font-weight: 800; color: var(--cde-grafite); line-height: 1; margin-bottom: 4px; }
+    .sector-compare-total .pts-suffix { font-size: 0.85rem; font-weight: 600; color: var(--cde-grafite-claro); margin-left: 4px; }
+    .sector-compare-label { font-size: 0.75rem; color: var(--cde-grafite-claro); margin-bottom: 12px; }
+    .sector-compare-bar { height: 8px; background: var(--cinza-fundo); border-radius: 4px; overflow: hidden; margin-bottom: 14px; }
+    .sector-compare-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .sector-compare-card.comercial      .sector-compare-bar-fill { background: var(--setor-comercial); }
+    .sector-compare-card.producao       .sector-compare-bar-fill { background: var(--setor-producao); }
+    .sector-compare-card.administrativo .sector-compare-bar-fill { background: var(--setor-administrativo); }
+    .sector-compare-stats { display: flex; gap: 18px; margin-bottom: 12px; }
+    .sector-compare-stats > div { display: flex; flex-direction: column; }
+    .sector-compare-stats .stat-label { font-size: 0.7rem; color: var(--cde-grafite-claro); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+    .sector-compare-stats .stat-value { font-size: 1rem; font-weight: 700; color: var(--cde-grafite); }
+    .sector-compare-top {
+      display: flex; align-items: center; gap: 6px;
+      padding-top: 12px; border-top: 1px dashed var(--cinza-borda);
+      font-size: 0.82rem;
+    }
+    .sector-compare-top .top-medal { font-size: 1rem; }
+    .sector-compare-top .top-name { font-weight: 700; color: var(--cde-grafite); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sector-compare-top .top-points { font-weight: 800; color: var(--cde-laranja-escuro); }
+    .sector-compare-top.empty { color: var(--cde-grafite-claro); font-style: italic; justify-content: center; }
+
+    .ranking-filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .ranking-filter-row label { margin: 0; font-size: 0.82rem; color: var(--cde-grafite-claro); font-weight: 600; }
+    .ranking-filter-row select { width: auto; min-width: 200px; margin: 0; padding: 8px 12px; font-size: 0.85rem; }
+    .filter-lock {
+      font-size: 0.75rem; color: var(--cde-laranja-escuro);
+      font-weight: 600; background: #FFF4E5; padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .goal-item, .cert-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 4px; border-bottom: 1px solid var(--cinza-borda);
+      gap: 12px; flex-wrap: wrap;
+    }
+    .goal-item:last-child, .cert-item:last-child { border-bottom: none; }
+    .goal-item .info, .cert-item .info { flex: 1; min-width: 200px; }
+    .goal-item .title, .cert-item .title { font-weight: 600; color: var(--cde-grafite); }
+    .goal-item .meta, .cert-item .meta { font-size: 0.82rem; color: var(--cde-grafite-claro); }
+    .goal-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .badge {
+      display: inline-block; padding: 4px 12px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .badge.pending  { background: #FFF4E5; color: #B35A00; }
+    .badge.approved { background: #E6F7EE; color: #158A49; }
+    .badge.rejected { background: #F8D7DA; color: #721C24; }
+
+    .ranking-table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid var(--cinza-borda); }
+    .ranking-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 700px; }
+    .ranking-table thead { background: var(--cinza-fundo); }
+    .ranking-table th {
+      text-align: left; padding: 12px 14px;
+      font-weight: 700; color: var(--cde-grafite);
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--cinza-borda); white-space: nowrap;
+    }
+    .ranking-table td {
+      padding: 12px 14px; border-bottom: 1px solid var(--cinza-borda);
+      color: var(--cde-grafite); vertical-align: middle;
+    }
+    .ranking-table tbody tr:last-child td { border-bottom: none; }
+    .ranking-table tbody tr:hover { background: #FFFAF5; }
+    .ranking-table tbody tr.is-supervisor td { background: #FFF9F3; }
+
+    .rank-pos {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-weight: 800; font-size: 0.85rem;
+      color: var(--cde-grafite); background: var(--cinza-fundo);
+    }
+    .rank-pos.gold   { background: linear-gradient(135deg, #FFD86B, #E8A800); color: #5B3D00; box-shadow: 0 2px 6px rgba(232,168,0,0.35); }
+    .rank-pos.silver { background: linear-gradient(135deg, #E2E5EA, #B7BCC4); color: #3E4147; box-shadow: 0 2px 6px rgba(183,188,196,0.35); }
+    .rank-pos.bronze { background: linear-gradient(135deg, #E3A277, #B57142); color: #4A2A10; box-shadow: 0 2px 6px rgba(181,113,66,0.35); }
+
+    .rank-name { font-weight: 600; }
+    .rank-email { font-size: 0.78rem; color: var(--cde-grafite-claro); }
+    .rank-points { font-weight: 800; font-size: 1.05rem; color: var(--cde-laranja-escuro); white-space: nowrap; }
+    .rank-cert-count {
+      display: inline-block; padding: 3px 10px;
+      background: #E6F7EE; color: #158A49;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    }
+    .rank-empty { padding: 24px; text-align: center; color: var(--cde-grafite-claro); font-size: 0.9rem; }
+
+    .file-input-wrapper { position: relative; margin-bottom: 12px; }
+    .file-input-wrapper input[type="file"] {
+      padding: 14px; border: 2px dashed var(--cde-laranja);
+      background: #FFF9F3; cursor: pointer; color: var(--cde-grafite-claro);
+    }
+    .file-input-wrapper input[type="file"]:hover { background: #FFF3E6; }
+
+    .msg { padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; font-size: 0.9rem; font-weight: 500; }
+    .msg.success { background: #E6F7EE; color: #158A49; border-left: 4px solid #1FA85C; }
+    .msg.error   { background: #FDE8EB; color: #A00D24; border-left: 4px solid var(--cde-vermelho); }
+
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(30, 15, 60, 0.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px; animation: fadeIn 0.15s ease;
+      overflow-y: auto;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-box {
+      background: var(--branco); border-radius: 16px; padding: 28px;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border-top: 5px solid transparent;
+      border-image: var(--gradiente-marca) 1; border-image-slice: 1;
+      animation: slideUp 0.2s ease; margin: auto;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .modal-box h3 { font-size: 1.15rem; margin-bottom: 14px; color: var(--cde-grafite); font-weight: 700; }
+    .modal-info {
+      font-size: 0.9rem; color: var(--cde-grafite-claro); margin-bottom: 18px;
+      padding: 10px 14px; background: var(--cinza-fundo);
+      border-radius: 8px; border-left: 3px solid var(--cde-laranja);
+    }
+    .modal-hint { font-size: 0.78rem; color: var(--cde-laranja-escuro); margin: -6px 0 18px; font-weight: 600; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+    .modal-actions button { width: auto; margin-bottom: 0; padding: 10px 20px; }
+
+    .site-footer {
+      margin-top: 40px; padding: 24px 22px 18px;
+      background: var(--branco); border-radius: 14px;
+      box-shadow: var(--sombra-roxa);
+      text-align: center; color: var(--cde-grafite-claro);
+      font-size: 0.82rem; line-height: 1.6;
+      width: 100%; max-width: 960px;
+      margin-left: auto; margin-right: auto;
+      border-top: 4px solid transparent;
+      border-image: var(--gradiente-marca) 1; border-image-slice: 1;
+    }
+    .site-footer .footer-brand {
+      display: inline-block; font-weight: 700;
+      background: var(--gradiente-marca);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .site-footer .footer-dev { font-weight: 600; color: var(--cde-grafite); }
+    .site-footer .footer-line { width: 60px; height: 3px; background: var(--gradiente-marca); border-radius: 3px; margin: 0 auto 12px; }
+    .site-footer .footer-rights { margin-top: 6px; font-size: 0.75rem; opacity: 0.85; }
+
+    .director-notice {
+      background: linear-gradient(135deg, #FFF9F3 0%, #FFF3E6 100%);
+      border-left: 5px solid var(--cde-laranja);
+      border-radius: 12px; padding: 16px 20px;
+      margin-bottom: 20px; font-size: 0.9rem; color: var(--cde-grafite);
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--sombra-roxa);
+    }
+    .director-notice .icon { font-size: 1.6rem; }
+    .director-notice strong { color: var(--cde-laranja-escuro); }
+    .director-notice.master { border-left-color: #B45309; background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); }
+    .director-notice.master strong { color: #92400E; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .brand-bar { padding: 14px 16px; }
+      .brand-bar img { max-width: 260px; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .header button { width: 100%; }
+      .score-box .number { font-size: 2.4rem; }
+      .quarter-col .q-value { font-size: 1.05rem; }
+      #login-view { padding: 28px 22px; }
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-actions button { width: 100%; }
+      .site-footer { font-size: 0.75rem; padding: 18px 16px 14px; }
+      .ranking-filter-row select { width: 100%; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+     /* ===================== BOTÃO FLUTUANTE CDE ACADEMY ===================== */
+    .academy-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 22px 14px 18px;
+      background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+      color: #fff;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+      box-shadow: 0 8px 24px rgba(91, 33, 182, 0.45),
+                  0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.25s ease;
+      white-space: nowrap;
+      animation: academyPulse 3s ease-in-out infinite;
+      font-family: inherit;
+    }
+    .academy-fab:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 32px rgba(91, 33, 182, 0.55),
+                  0 4px 10px rgba(0, 0, 0, 0.15);
+      animation: none;
+    }
+    .academy-fab:active { transform: translateY(-1px) scale(0.99); }
+    .academy-fab .academy-fab-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+    }
+    .academy-fab .academy-fab-text {
+      display: inline-block;
+      transition: max-width 0.3s ease;
+    }
+    @keyframes academyPulse {
+      0%, 88%, 100% {
+        box-shadow: 0 8px 24px rgba(91, 33, 182, 0.45), 0 2px 6px rgba(0,0,0,0.1);
+      }
+      92% {
+        box-shadow: 0 8px 24px rgba(91, 33, 182, 0.65), 0 0 0 10px rgba(124, 58, 237, 0.15);
+      }
+    }
+    @media (max-width: 600px) {
+      .academy-fab {
+        bottom: 18px;
+        right: 18px;
+        padding: 14px;
+        border-radius: 50%;
+        width: 58px;
+        height: 58px;
+        justify-content: center;
+      }
+      .academy-fab .academy-fab-text { display: none; }
+      .academy-fab .academy-fab-icon { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="brand-bar">
+    <img src="https://casadosespelhos.com.br/wp-content/uploads/2018/05/marca_cde_cores_horizontal_tag_bl-2048x713.png"
+         alt="CDE Casa dos Espelhos | Blindex">
+  </div>
+
+  <div id="message-box"></div>
+
+  <div id="login-view">
+    <h1>🎯 PDI | CASA DOS ESPELHOS</h1>
+    <p>Acesse com seu e-mail (@pdicde.com) CDE Blindex</p>
+    <input type="email" id="login-email" placeholder="nomeultimonome@pdicde.com">
+    <input type="password" id="login-password" placeholder="Senha">
+    <br>
+    <button onclick="login()">Entrar</button>
+    <br>
+  </div>
+
+  <div id="employee-view" class="hidden">
+    <div class="header">
+      <div>
+        <h1>Meu PDI</h1>
+        <div class="user-info" id="emp-user-info"></div>
+      </div>
+      <button class="secondary" onclick="logout()">Sair</button>
+    </div>
+
+    <div class="score-box">
+      <div class="score-main">
+        <div class="number" id="emp-score">0</div>
+        <div class="label">Pontos acumulados</div>
+      </div>
+      <div class="quarters-row" id="emp-quarters"></div>
+      <div class="coefficient-wrap">
+        <span class="coef-label">Coeficiente Geral</span>
+        <span class="coef-value" id="emp-coef">0%</span>
+      </div>
+      <div class="coefficient-bar"><div class="coefficient-bar-fill" id="emp-coef-bar" style="width:0%"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 Minhas Metas</h2>
+      <div id="goals-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>📎 Enviar Certificado/Relatório/Comprovante</h2>
+      <form id="upload-form" onsubmit="submitCertificate(event)">
+        <label>Meta relacionada:</label>
+        <select id="cert-goal" required></select>
+        <label>Arquivo (PDF, PNG, JPG ou JPEG):</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="cert-file" accept=".pdf,.png,.jpg,.jpeg" required>
+        </div>
+        <button type="submit" class="success">Enviar para Validação Gerencial</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>📜 Metas e Certificações Validadas</h2>
+      <div id="emp-certs-list"></div>
+    </div>
+  </div>
+
+  <div id="management-view" class="hidden">
+    <div class="header">
+      <div>
+        <h1 id="mgmt-title">Painel do Supervisor</h1>
+        <div class="user-info" id="mgmt-user-info"></div>
+      </div>
+      <button class="secondary" onclick="logout()">Sair</button>
+    </div>
+
+    <div id="director-notice" class="director-notice hidden">
+      <span class="icon">👔</span>
+      <div>
+        Bem-vindo(a), <strong id="director-notice-role">Diretoria</strong>. Você tem acesso
+        irrestrito: pode criar e excluir metas para qualquer colaborador <strong>e para supervisores</strong> de qualquer setor.
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">📊 Visão Geral</button>
+      <button class="tab-btn" data-tab="goals" onclick="switchTab('goals')">🎯 Gerenciar Metas</button>
+      <button class="tab-btn hidden" id="tab-btn-mypdi" data-tab="mypdi" onclick="switchTab('mypdi')">👤 Meu PDI</button>
+    </div>
+
+    <div id="tab-overview" class="tab-content">
+      <div class="card">
+        <h2>📊 Comparativo por Setor</h2>
+        <div id="sector-compare-container">
+          <div class="rank-empty">Carregando comparativo…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🎯 Taxa de Aderência às Metas <span style="font-size:0.72rem; font-weight:600; color:#6D6E71; margin-left:6px;">(aprovados / enviados)</span></h2>
+        <div id="adherence-container">
+          <div class="rank-empty">Carregando aderência…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🏆 Ranking de Pontuação</h2>
+        <div class="ranking-filter-row">
+          <label for="ranking-sector-filter">Filtrar por setor:</label>
+          <select id="ranking-sector-filter" onchange="applySectorFilter()">
+            <option value="all">Todos os setores</option>
+            <option value="COMERCIAL">Comercial</option>
+            <option value="PRODUCAO">Produção</option>
+            <option value="ADMINISTRATIVO">Administrativo</option>
+          </select>
+          <span id="filter-lock-msg" class="filter-lock hidden">🔒 Você vê apenas o seu setor</span>
+        </div>
+        <div id="ranking-container">
+          <div class="rank-empty">Carregando ranking…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔍 Certificados Pendentes</h2>
+        <div id="pending-certs-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>✅ Histórico de Validações</h2>
+        <div id="validated-certs-list"></div>
+      </div>
+    </div>
+
+    <div id="tab-goals" class="tab-content hidden">
+      <div class="card">
+        <h2>➕ Criar Nova Meta</h2>
+        <p style="color:#6D6E71; font-size:0.85rem; margin-bottom:16px;" id="goal-scope-hint"></p>
+        <form id="create-goal-form" onsubmit="createGoal(event)">
+          <label>Colaborador(a):</label>
+          <select id="goal-assignee" required>
+            <option value="">Carregando…</option>
+          </select>
+
+          <div class="form-grid">
+            <div class="full">
+              <label>Título da meta:</label>
+              <input type="text" id="goal-title" placeholder="Ex: Concluir curso de Excel Avançado" required maxlength="120">
+            </div>
+
+            <div class="full">
+              <label>Descrição (opcional):</label>
+              <textarea id="goal-desc" placeholder="Detalhes da meta, critérios de avaliação..." maxlength="500"></textarea>
+            </div>
+
+            <div>
+              <label>Prazo:</label>
+              <input type="date" id="goal-deadline" required>
+            </div>
+            <div>
+              <label>Pontos máximos:</label>
+              <input type="number" id="goal-points" min="1" max="999" value="10" required>
+            </div>
+          </div>
+
+          <button type="submit" class="success">Criar Meta</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>📋 Metas Cadastradas</h2>
+        <div class="ranking-filter-row">
+          <label for="goals-sector-filter">Filtrar por setor:</label>
+          <select id="goals-sector-filter" onchange="renderAllGoals()">
+            <option value="all">Todos os setores</option>
+            <option value="COMERCIAL">Comercial</option>
+            <option value="PRODUCAO">Produção</option>
+            <option value="ADMINISTRATIVO">Administrativo</option>
+          </select>
+          <input type="text" id="goals-search" placeholder="Buscar colaborador..."
+                 style="width:auto; min-width:200px; margin:0; padding:8px 12px; font-size:0.85rem;"
+                 oninput="renderAllGoals()">
+        </div>
+        <div id="all-goals-list">
+          <div class="rank-empty">Carregando metas…</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-mypdi" class="tab-content hidden">
+      <div class="score-box">
+        <div class="score-main">
+          <div class="number" id="mgmt-score">0</div>
+          <div class="label">Meus pontos acumulados</div>
+        </div>
+        <div class="quarters-row" id="mgmt-quarters"></div>
+        <div class="coefficient-wrap">
+          <span class="coef-label">Coeficiente Geral</span>
+          <span class="coef-value" id="mgmt-coef">0%</span>
+        </div>
+        <div class="coefficient-bar"><div class="coefficient-bar-fill" id="mgmt-coef-bar" style="width:0%"></div></div>
+      </div>
+
+      <div class="card">
+        <h2>🎯 Minhas Metas</h2>
+        <div id="mgmt-goals-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>📎 Enviar Certificado/Relatório/Comprovante</h2>
+        <form id="mgmt-upload-form" onsubmit="submitMgmtCertificate(event)">
+          <label>Meta relacionada:</label>
+          <select id="mgmt-cert-goal" required></select>
+          <label>Arquivo (PDF, PNG, JPG ou JPEG):</label>
+          <div class="file-input-wrapper">
+            <input type="file" id="mgmt-cert-file" accept=".pdf,.png,.jpg,.jpeg" required>
+          </div>
+          <button type="submit" class="success">Enviar para Validação</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>📜 Meus Certificados</h2>
+        <div id="mgmt-certs-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-line"></div>
+  <div>
+    Sistema desenvolvido por <span class="footer-dev">Gabriel M.</span> para
+    <span class="footer-brand">CDE Blindex AM</span>
+  </div>
+  <div class="footer-rights">© Todos os direitos reservados</div>
+</footer>
+
+<div id="approve-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>✅ Aprovar Certificado</h3>
+    <p class="modal-info" id="modal-info"></p>
+    <label for="modal-points">Nota a atribuir (pontos):</label>
+    <input type="number" id="modal-points" min="0" step="1">
+    <p class="modal-hint" id="modal-hint"></p>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeApproveModal()">Cancelar</button>
+      <button class="success" onclick="confirmApprove()">Confirmar Aprovação</button>
+    </div>
+  </div>
+</div>
+
+<div id="edit-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>✏️ Editar Meta</h3>
+    <p class="modal-info" id="edit-modal-info"></p>
+
+    <label>Título da meta:</label>
+    <input type="text" id="edit-goal-title" maxlength="120" required>
+
+    <label>Descrição (opcional):</label>
+    <textarea id="edit-goal-desc" maxlength="500"></textarea>
+
+    <div class="form-grid">
+      <div>
+        <label>Prazo:</label>
+        <input type="date" id="edit-goal-deadline" required>
+      </div>
+      <div>
+        <label>Pontos máximos:</label>
+        <input type="number" id="edit-goal-points" min="1" max="999" required>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeEditModal()">Cancelar</button>
+      <button class="success" onclick="confirmEditGoal()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<div id="delete-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h3>🗑️ Excluir Meta</h3>
+    <p class="modal-info" id="delete-modal-info"></p>
+    <p style="font-size:0.85rem; color:#A00D24; margin-bottom:16px;">
+      ⚠️ Essa ação não pode ser desfeita. Certificados vinculados podem perder a referência.
+    </p>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="danger" onclick="confirmDeleteGoal()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+ <!-- ===================== BOTÃO FLUTUANTE CDE ACADEMY ===================== -->
+    <a href="/academy" 
+       class="academy-fab" 
+       id="academy-fab"
+       target="_self"
+       title="Abrir CDE Academy">
+      <span class="academy-fab-icon">🎓</span>
+      <span class="academy-fab-text">CDE Academy</span>
+    </a>
+
+<script>
+  
+// Esconde o botão Academy na tela de login
+function updateAcademyFabVisibility() {
+  const fab = document.getElementById('academy-fab');
+  if (!fab) return;
+  const loginVisible = !document.getElementById('login-view').classList.contains('hidden');
+  fab.style.display = loginVisible ? 'none' : 'flex';
+}
+// ==================== CONFIG SUPABASE ====================
+const SUPABASE_URL = 'https://whjyvphamkbjcrdzhzoc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_EyZgqDQTSV-M-O3_l63V7Q_LFcFDl69';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: window.localStorage,
+    storageKey: 'cde-auth-session',
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
+// ==================== ESTADO ====================
+let currentUser = null;
+let currentProfile = null;
+let pendingCertsCache = {};
+let pendingApproval = null;
+let pendingDelete = null;
+let pendingEdit = null;
+
+let cachedRankingData = [];
+let cachedAllGoals = [];
+let currentSectorFilter = 'all';
+
+let isManagement = false;
+let isDiretor = false;
+let isSupervisor = false;
+let isMaster = false;
+let canManageAll = false;
+
+const SECTORS = [
+  { key: 'COMERCIAL',      label: 'Comercial',      cls: 'comercial' },
+  { key: 'PRODUCAO',       label: 'Produção',       cls: 'producao' },
+  { key: 'ADMINISTRATIVO', label: 'Administrativo', cls: 'administrativo' }
+];
+
+// ==================== AUXILIARES ====================
+function showMessage(text, type = 'success') {
+  const box = document.getElementById('message-box');
+  box.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  setTimeout(() => box.innerHTML = '', 5000);
+}
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + (dateStr.length === 10 ? 'T00:00:00' : ''));
+  return d.toLocaleDateString('pt-BR');
+}
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function normalizeSector(s) {
+  if (!s) return null;
+  return String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+function getSectorBadge(sector) {
+  const n = normalizeSector(sector);
+  if (!n) return '<span class="sector-badge none">Sem setor</span>';
+  if (n === 'COMERCIAL')      return '<span class="sector-badge comercial">Comercial</span>';
+  if (n === 'PRODUCAO')       return '<span class="sector-badge producao">Produção</span>';
+  if (n === 'ADMINISTRATIVO') return '<span class="sector-badge administrativo">Administrativo</span>';
+  return `<span class="sector-badge none">${escapeHtml(sector)}</span>`;
+}
+function getRoleBadge(role, isMasterUser = false) {
+  const r = (role || '').toLowerCase();
+  if (isMasterUser || r === 'master') return '<span class="role-badge master">👑 Master</span>';
+  if (r === 'supervisor') return '<span class="role-badge">Supervisor</span>';
+  if (r.includes('diretor') || r.includes('director') || r === 'diretoria') {
+    return '<span class="role-badge">Diretoria</span>';
+  }
+  return '';
+}
+
+/**
+ * Verifica se o usuário logado pode editar/excluir uma meta.
+ * Regra:
+ *  • Diretoria/Master: pode qualquer meta
+ *  • Supervisor: apenas metas que ELE criou (created_by = currentUser.id)
+ */
+function canEditOrDeleteGoal(goal) {
+  if (canManageAll) return true;
+  return goal && goal.created_by && String(goal.created_by) === String(currentUser.id);
+}
+
+// ==================== TRIMESTRES ====================
+function currentYear() { return new Date().getFullYear(); }
+function currentQuarter() { return Math.floor(new Date().getMonth() / 3) + 1; }
+
+function computeQuarters(certs) {
+  const year = currentYear();
+  const curQ = currentQuarter();
+  const buckets = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  const hasData = { 1: false, 2: false, 3: false, 4: false };
+
+  (certs || []).forEach(c => {
+    if (!c.validated_at) return;
+    const d = new Date(c.validated_at);
+    if (d.getFullYear() !== year) return;
+    const q = Math.floor(d.getMonth() / 3) + 1;
+    buckets[q] += (c.points_awarded || 0);
+    hasData[q] = true;
+  });
+
+  const labels = ['1º TRI', '2º TRI', '3º TRI', '4º TRI'];
+  return [1, 2, 3, 4].map(q => ({
+    label: labels[q - 1],
+    value: buckets[q],
+    hasData: hasData[q],
+    isCurrent: q === curQ
+  }));
+}
+
+function renderQuarters(containerId, quarters) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = quarters.map(q => {
+    const cls = q.isCurrent ? 'quarter-col current' : 'quarter-col';
+    if (q.hasData) {
+      return `<div class="${cls}">
+        <div class="q-label">${q.label}</div>
+        <div class="q-value">${q.value}</div>
+      </div>`;
+    }
+    return `<div class="${cls}">
+      <div class="q-label">${q.label}</div>
+      <div class="q-value empty">—</div>
+    </div>`;
+  }).join('');
+}
+
+function calcCoefficient(pointsEarned, maxPointsPossible) {
+  if (!maxPointsPossible || maxPointsPossible <= 0) return 0;
+  return Math.min(100, Math.round((pointsEarned / maxPointsPossible) * 100));
+}
+
+// ==================== TABS ====================
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('hidden', c.id !== 'tab-' + name);
+  });
+}
+
+// Mostra/esconde o botão CDE Academy conforme a tela
+function updateAcademyFabVisibility() {
+  const fab = document.getElementById('academy-fab');
+  if (!fab) return;
+  const loginVisible = !document.getElementById('login-view').classList.contains('hidden');
+  // No mobile ele precisa ser "flex" também (para manter o ícone centralizado)
+  const isMobile = window.matchMedia('(max-width: 600px)').matches;
+  fab.style.display = loginVisible ? 'none' : (isMobile ? 'flex' : 'flex');
+}
+
+// ==================== AUTH ====================
+async function login() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showMessage('Preencha e-mail e senha.', 'error');
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return showMessage(error.message, 'error');
+  await loadUser();
+}
+
+async function logout() {
+  await db.auth.signOut();
+  currentUser = null; currentProfile = null;
+  pendingCertsCache = {}; pendingApproval = null; pendingDelete = null; pendingEdit = null;
+  cachedRankingData = []; cachedAllGoals = []; currentSectorFilter = 'all';
+  isManagement = isDiretor = isSupervisor = isMaster = canManageAll = false;
+  document.getElementById('login-view').classList.remove('hidden');
+  document.getElementById('employee-view').classList.add('hidden');
+  document.getElementById('management-view').classList.add('hidden');
+  document.getElementById('approve-modal').classList.add('hidden');
+  document.getElementById('delete-modal').classList.add('hidden');
+  document.getElementById('edit-modal').classList.add('hidden');
+  updateAcademyFabVisibility(); 
+}
+
+// ==================== LOAD USER ====================
+async function loadUser() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return;
+
+  currentUser = user;
+  const { data: profile, error } = await db
+    .from('profiles').select('*').eq('id', user.id).single();
+
+  if (error || !profile) {
+    console.error("Erro Supabase:", error);
+    return showMessage('Perfil não encontrado.', 'error');
+  }
+
+  currentProfile = profile;
+  document.getElementById('login-view').classList.add('hidden');
+
+  const roleLower = (profile.role || '').toLowerCase();
+  isMaster     = profile.is_master === true || roleLower === 'master';
+  isSupervisor = roleLower === 'supervisor';
+  isDiretor    = roleLower.includes('diretor') || roleLower.includes('director') || roleLower === 'diretoria';
+  canManageAll = isDiretor || isMaster;
+  isManagement = isSupervisor || isDiretor || isMaster;
+
+  if (isManagement) {
+    document.getElementById('management-view').classList.remove('hidden');
+    document.getElementById('employee-view').classList.add('hidden');
+    document.getElementById('login-view').classList.add('hidden');
+  updateAcademyFabVisibility();
+
+    const titleEl = document.getElementById('mgmt-title');
+    if (isMaster)         titleEl.textContent = '👑 Painel Master';
+    else if (isDiretor)   titleEl.textContent = 'Painel da Diretoria';
+    else                  titleEl.textContent = 'Painel do Supervisor';
+
+    const roleTag = getRoleBadge(profile.role, isMaster);
+    const sectorTag = (isSupervisor || profile.sector) ? getSectorBadge(profile.sector) : '';
+    document.getElementById('mgmt-user-info').innerHTML =
+      `${escapeHtml(profile.full_name)} ${roleTag} ${sectorTag}`;
+
+    const noticeEl = document.getElementById('director-notice');
+    const noticeRoleEl = document.getElementById('director-notice-role');
+    if (canManageAll) {
+      noticeRoleEl.textContent = isMaster ? 'Master' : 'Diretoria';
+      noticeEl.classList.toggle('master', isMaster);
+      noticeEl.classList.remove('hidden');
+    } else {
+      noticeEl.classList.add('hidden');
+    }
+
+    const myPdiBtn = document.getElementById('tab-btn-mypdi');
+    if (isSupervisor) myPdiBtn.classList.remove('hidden');
+    else myPdiBtn.classList.add('hidden');
+
+    const filterSel = document.getElementById('ranking-sector-filter');
+    const filterLock = document.getElementById('filter-lock-msg');
+    if (isSupervisor && !canManageAll && profile.sector) {
+      const n = normalizeSector(profile.sector);
+      if (['COMERCIAL','PRODUCAO','ADMINISTRATIVO'].includes(n)) {
+        filterSel.value = n;
+        filterSel.disabled = true;
+        currentSectorFilter = n;
+        filterLock.classList.remove('hidden');
+      }
+    } else {
+      filterSel.value = 'all';
+      filterSel.disabled = false;
+      currentSectorFilter = 'all';
+      filterLock.classList.add('hidden');
+    }
+
+    const goalsFilter = document.getElementById('goals-sector-filter');
+    if (isSupervisor && !canManageAll && profile.sector) {
+      goalsFilter.value = normalizeSector(profile.sector);
+      goalsFilter.disabled = true;
+    } else {
+      goalsFilter.value = 'all';
+      goalsFilter.disabled = false;
+    }
+
+    if (isSupervisor) loadMgmtPersonalData();
+
+    loadGoalAssignmentOptions();
+    loadAllGoals();
+    loadSectorComparisonAndRanking();
+    loadPendingCertificates();
+    loadValidatedCertificates();
+
+  } else {
+    document.getElementById('employee-view').classList.remove('hidden');
+    document.getElementById('management-view').classList.add('hidden');
+    document.getElementById('emp-user-info').innerHTML =
+      `${escapeHtml(profile.full_name)} (Colaborador) ${getSectorBadge(profile.sector)}`;
+    loadEmployeeData();
+  }
+}
+
+// ==================== COLABORADOR ====================
+async function loadEmployeeData() {
+  await loadGoalsFor(currentUser.id, 'goals-list', 'cert-goal');
+  await loadCertificatesFor(currentUser.id, 'emp-certs-list');
+  await loadScoreFor(currentUser.id, 'emp-score', 'emp-quarters', 'emp-coef', 'emp-coef-bar');
+}
+
+async function loadMgmtPersonalData() {
+  await loadGoalsFor(currentUser.id, 'mgmt-goals-list', 'mgmt-cert-goal');
+  await loadCertificatesFor(currentUser.id, 'mgmt-certs-list');
+  await loadScoreFor(currentUser.id, 'mgmt-score', 'mgmt-quarters', 'mgmt-coef', 'mgmt-coef-bar');
+}
+
+// ==================== GENERICOS ====================
+async function loadGoalsFor(userId, listId, selectId) {
+  const { data: goals, error } = await db
+    .from('goals').select('*')
+    .eq('user_id', userId)
+    .order('deadline', { ascending: true });
+
+  const list = document.getElementById(listId);
+  const select = document.getElementById(selectId);
+
+  if (error || !goals || goals.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhuma meta cadastrada.</p>';
+    if (select) select.innerHTML = '<option value="">Nenhuma meta disponível</option>';
+    return;
+  }
+
+  list.innerHTML = goals.map(g => {
+    const isDerived = g.goal_type === 'sector_derived';
+    return `
+      <div class="goal-item ${isDerived ? 'goal-derived' : ''}">
+        <div class="info">
+          <div class="title">${escapeHtml(g.title)}</div>
+          <div class="meta">
+            Prazo: ${formatDate(g.deadline)} | Pontos máx: ${g.max_points}
+            ${isDerived ? ' | <em style="color:#D4650F;">Meta setorial (30% do setor)</em>' : ''}
+          </div>
+          ${g.description ? `<div class="meta">${escapeHtml(g.description)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (select) {
+    select.innerHTML = goals.map(g =>
+      `<option value="${g.id}">${escapeHtml(g.title)} (prazo: ${formatDate(g.deadline)})</option>`
+    ).join('');
+  }
+}
+
+async function loadCertificatesFor(userId, listId) {
+  const { data: certs, error } = await db
+    .from('certificates')
+    .select('*, goals(title)')
+    .eq('user_id', userId)
+    .order('submitted_at', { ascending: false });
+
+  const list = document.getElementById(listId);
+  if (error || !certs || certs.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhum certificado enviado ainda.</p>';
+    return;
+  }
+
+  list.innerHTML = certs.map(c => `
+    <div class="cert-item">
+      <div class="info">
+        <div class="title">${escapeHtml(c.goals?.title || 'Meta')}</div>
+        <div class="meta">Enviado em ${formatDate(c.submitted_at)}</div>
+      </div>
+      <div>
+        <span class="badge ${c.status}">${c.status === 'pending' ? 'Pendente' : c.status === 'approved' ? 'Aprovado' : 'Rejeitado'}</span>
+        ${c.status === 'approved' ? `<strong style="margin-left:8px; color:#158A49;">+${c.points_awarded} pts</strong>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadScoreFor(userId, scoreId, quartersId, coefId, coefBarId) {
+  const { data: approved } = await db
+    .from('certificates').select('points_awarded, validated_at')
+    .eq('user_id', userId).eq('status', 'approved');
+
+  const { data: goals } = await db
+    .from('goals').select('max_points, goal_type')
+    .eq('user_id', userId);
+
+  const totalPoints = (approved || []).reduce((s, c) => s + (c.points_awarded || 0), 0);
+  const maxPossible = (goals || []).reduce((s, g) => s + (g.max_points || 0), 0);
+  const coef = calcCoefficient(totalPoints, maxPossible);
+
+  document.getElementById(scoreId).textContent = totalPoints;
+
+  const quarters = computeQuarters(approved || []);
+  renderQuarters(quartersId, quarters);
+
+  document.getElementById(coefId).textContent = coef + '%';
+  document.getElementById(coefBarId).style.width = coef + '%';
+}
+
+// ==================== UPLOAD ====================
+async function submitCertificate(e) {
+  e.preventDefault();
+  await _doUpload(currentUser.id, 'cert-goal', 'cert-file', 'emp-certs-list');
+  await loadScoreFor(currentUser.id, 'emp-score', 'emp-quarters', 'emp-coef', 'emp-coef-bar');
+}
+async function submitMgmtCertificate(e) {
+  e.preventDefault();
+  await _doUpload(currentUser.id, 'mgmt-cert-goal', 'mgmt-cert-file', 'mgmt-certs-list');
+  await loadScoreFor(currentUser.id, 'mgmt-score', 'mgmt-quarters', 'mgmt-coef', 'mgmt-coef-bar');
+}
+async function _doUpload(userId, goalSelectId, fileInputId, listId) {
+  const goalId = document.getElementById(goalSelectId).value;
+  const fileInput = document.getElementById(fileInputId);
+  const file = fileInput.files[0];
+  if (!goalId || !file) return showMessage('Selecione a meta e o arquivo.', 'error');
+
+  const ext = file.name.split('.').pop();
+  const cleanName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+  const filePath = `${userId}/${cleanName}`;
+
+  const { error: upErr } = await db.storage.from('certificates').upload(filePath, file);
+  if (upErr) return showMessage('Erro no upload: ' + upErr.message, 'error');
+
+  const { error: dbErr } = await db.from('certificates').insert({
+    user_id: userId, goal_id: goalId,
+    file_url: filePath, file_name: file.name, status: 'pending'
+  });
+  if (dbErr) return showMessage('Erro ao registrar: ' + dbErr.message, 'error');
+
+  showMessage('Certificado enviado! Aguarde validação.', 'success');
+  fileInput.value = '';
+  loadCertificatesFor(userId, listId);
+}
+
+// ==================== GERENCIAR METAS ====================
+async function loadGoalAssignmentOptions() {
+  const select = document.getElementById('goal-assignee');
+  const hint = document.getElementById('goal-scope-hint');
+
+  const { data, error } = await db.rpc('get_goal_assignees');
+
+  if (error) {
+    console.error("Erro RPC get_goal_assignees:", error);
+    return loadGoalAssignmentOptionsFallback();
+  }
+
+  if (!data || data.length === 0) {
+    select.innerHTML = `<option value="">Nenhum colaborador encontrado</option>`;
+    return;
+  }
+
+  if (canManageAll) {
+    hint.innerHTML = `Você tem acesso <strong>total</strong> — pode criar metas para colaboradores e <strong>supervisores</strong> de qualquer setor.`;
+  } else {
+    hint.innerHTML = `Você está criando metas para o setor <strong>${escapeHtml(currentProfile.sector || '')}</strong>.`;
+  }
+
+  select.innerHTML = '<option value="">— Selecione —</option>' +
+    data.map(p => {
+      const roleLower = (p.role || '').toLowerCase();
+      const isSup = roleLower === 'supervisor';
+      const tag = isSup ? ' [Supervisor]' : '';
+      const sec = p.sector ? ` — ${p.sector}` : '';
+      return `<option value="${p.id}">${escapeHtml(p.full_name || p.email)}${tag}${sec}</option>`;
+    }).join('');
+}
+
+async function loadGoalAssignmentOptionsFallback() {
+  const select = document.getElementById('goal-assignee');
+  const hint = document.getElementById('goal-scope-hint');
+
+  const scopeSector = (!canManageAll && isSupervisor) ? currentProfile.sector : null;
+  const roles = canManageAll
+    ? ['employee','colaborador','supervisor']
+    : ['employee','colaborador'];
+
+  let query = db.from('profiles')
+    .select('id, full_name, email, sector, role')
+    .in('role', roles);
+
+  if (scopeSector) {
+    query = query.eq('sector', scopeSector);
+    hint.innerHTML = `Você está criando metas para o setor <strong>${escapeHtml(scopeSector)}</strong>.`;
+  } else {
+    hint.innerHTML = `Você tem acesso <strong>total</strong> — pode criar metas para qualquer colaborador da empresa.`;
+  }
+
+  const { data, error } = await query;
+  if (error) { select.innerHTML = `<option value="">Erro ao carregar</option>`; return; }
+  if (!data || data.length === 0) { select.innerHTML = `<option value="">Nenhum colaborador encontrado</option>`; return; }
+
+  data.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+
+  select.innerHTML = '<option value="">— Selecione o colaborador —</option>' +
+    data.map(p => {
+      const roleLower = (p.role || '').toLowerCase();
+      const isSup = roleLower === 'supervisor';
+      const tag = isSup ? ' [Supervisor]' : '';
+      const sec = p.sector ? ` — ${p.sector}` : '';
+      return `<option value="${p.id}">${escapeHtml(p.full_name || p.email)}${tag}${sec}</option>`;
+    }).join('');
+}
+
+async function createGoal(e) {
+  e.preventDefault();
+
+  const assigneeId = document.getElementById('goal-assignee').value;
+  const title      = document.getElementById('goal-title').value.trim();
+  const description = document.getElementById('goal-desc').value.trim();
+  const deadline   = document.getElementById('goal-deadline').value;
+  const maxPoints  = parseInt(document.getElementById('goal-points').value, 10);
+
+  if (!assigneeId || !title || !deadline || isNaN(maxPoints) || maxPoints < 1) {
+    return showMessage('Preencha todos os campos corretamente.', 'error');
+  }
+
+  const { data: assignee } = await db
+    .from('profiles').select('id, sector, role').eq('id', assigneeId).single();
+
+  if (!assignee) return showMessage('Colaborador não encontrado.', 'error');
+
+  if (!canManageAll && isSupervisor) {
+    const mySec = normalizeSector(currentProfile.sector);
+    const targetSec = normalizeSector(assignee.sector);
+    if (mySec !== targetSec) return showMessage('Você só pode criar metas para o seu setor.', 'error');
+  }
+
+  // Tenta inserir com created_by; se a coluna não existir, insere sem
+  const payload = {
+    user_id: assigneeId,
+    title: title,
+    description: description || null,
+    deadline: deadline,
+    max_points: maxPoints,
+    goal_type: 'individual',
+    sector: assignee.sector || null,
+    created_by: currentUser.id
+  };
+
+  let { error } = await db.from('goals').insert(payload);
+
+  // Fallback caso a coluna created_by ainda não exista no banco
+  if (error && /created_by/i.test(error.message || '')) {
+    console.warn('Coluna created_by não existe. Inserindo sem ela. Rode o SQL de migração.');
+    delete payload.created_by;
+    const retry = await db.from('goals').insert(payload);
+    error = retry.error;
+  }
+
+  if (error) return showMessage('Erro ao criar meta: ' + error.message, 'error');
+
+  showMessage(`Meta criada com sucesso! ⚡`, 'success');
+  document.getElementById('create-goal-form').reset();
+  document.getElementById('goal-points').value = 10;
+
+  loadAllGoals();
+  loadGoalAssignmentOptions();
+}
+
+async function loadAllGoals() {
+  const container = document.getElementById('all-goals-list');
+  container.innerHTML = '<div class="rank-empty">Carregando metas…</div>';
+
+  const { data, error } = await db
+    .from('goals')
+    .select('*, profiles!goals_user_id_fkey(id, full_name, email, sector, role)')
+    .eq('goal_type', 'individual')
+    .order('deadline', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="rank-empty" style="color:#C8102E;">Erro: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  let goals = data || [];
+  if (!canManageAll && isSupervisor) {
+    const mySec = normalizeSector(currentProfile.sector);
+    goals = goals.filter(g => normalizeSector(g.profiles?.sector) === mySec);
+  }
+
+  cachedAllGoals = goals;
+  renderAllGoals();
+}
+
+function renderAllGoals() {
+  const container = document.getElementById('all-goals-list');
+  const filterSel = document.getElementById('goals-sector-filter');
+  const searchEl = document.getElementById('goals-search');
+
+  let goals = [...cachedAllGoals];
+
+  const fSec = filterSel.value;
+  if (fSec !== 'all') {
+    goals = goals.filter(g => normalizeSector(g.profiles?.sector) === fSec);
+  }
+
+  const search = (searchEl?.value || '').toLowerCase().trim();
+  if (search) {
+    goals = goals.filter(g =>
+      (g.profiles?.full_name || '').toLowerCase().includes(search) ||
+      (g.profiles?.email || '').toLowerCase().includes(search) ||
+      (g.title || '').toLowerCase().includes(search)
+    );
+  }
+
+  if (goals.length === 0) {
+    container.innerHTML = '<div class="rank-empty">Nenhuma meta encontrada.</div>';
+    return;
+  }
+
+  goals.sort((a, b) => {
+    const na = a.profiles?.full_name || '';
+    const nb = b.profiles?.full_name || '';
+    if (na !== nb) return na.localeCompare(nb);
+    return new Date(a.deadline) - new Date(b.deadline);
+  });
+
+  container.innerHTML = goals.map(g => {
+    const roleLower = (g.profiles?.role || '').toLowerCase();
+    const isSup = roleLower === 'supervisor';
+    const supTag = isSup ? ' <span class="role-badge" style="font-size:0.6rem;">Supervisor</span>' : '';
+
+    // Permissão: diretoria/master → tudo; supervisor → só o que ELE criou
+    const canModify = canEditOrDeleteGoal(g);
+    const editBtn = canModify
+      ? `<button class="small secondary" onclick="openEditModal('${g.id}')">✏️ Editar</button>`
+      : `<button class="small secondary" disabled title="Apenas quem criou esta meta ou a diretoria pode editá-la">🔒 Editar</button>`;
+    const delBtn = canModify
+      ? `<button class="small danger" onclick="openDeleteModal('${g.id}')">🗑️ Excluir</button>`
+      : `<button class="small secondary" disabled title="Apenas quem criou esta meta ou a diretoria pode excluí-la">🔒 Excluir</button>`;
+
+    return `
+      <div class="goal-item">
+        <div class="info">
+          <div class="title">
+            ${escapeHtml(g.profiles?.full_name || 'Colaborador')}${supTag}
+            ${getSectorBadge(g.profiles?.sector)}
+          </div>
+          <div class="meta" style="font-weight:600; color:#414042; margin-top:4px;">
+            🎯 ${escapeHtml(g.title)}
+          </div>
+          <div class="meta">
+            Prazo: ${formatDate(g.deadline)} | Pontos máx: <strong>${g.max_points}</strong>
+          </div>
+          ${g.description ? `<div class="meta" style="font-style:italic;">${escapeHtml(g.description)}</div>` : ''}
+        </div>
+        <div class="goal-actions">
+          ${editBtn}
+          ${delBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== EDITAR META ====================
+async function openEditModal(goalId) {
+  // Busca no cache; se não encontrar, busca no banco
+  let goal = cachedAllGoals.find(g => String(g.id) === String(goalId));
+
+  if (!goal) {
+    const { data, error } = await db
+      .from('goals')
+      .select('*, profiles!goals_user_id_fkey(id, full_name, email, sector, role)')
+      .eq('id', goalId)
+      .single();
+    if (error || !data) return showMessage('Meta não encontrada.', 'error');
+    goal = data;
+  }
+
+  // Permissão
+  if (!canEditOrDeleteGoal(goal)) {
+    return showMessage('Você não tem permissão para editar esta meta. Apenas quem a criou ou a diretoria pode editar.', 'error');
+  }
+
+  pendingEdit = { goalId: goal.id };
+  document.getElementById('edit-modal-info').innerHTML =
+    `Editando meta de <strong>${escapeHtml(goal.profiles?.full_name || '')}</strong>`;
+
+  document.getElementById('edit-goal-title').value = goal.title || '';
+  document.getElementById('edit-goal-desc').value = goal.description || '';
+  document.getElementById('edit-goal-deadline').value = goal.deadline || '';
+  document.getElementById('edit-goal-points').value = goal.max_points || 10;
+
+  document.getElementById('edit-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('edit-goal-title').focus(), 60);
+}
+
+function closeEditModal() {
+  pendingEdit = null;
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+
+async function confirmEditGoal() {
+  if (!pendingEdit) return;
+
+  const title = document.getElementById('edit-goal-title').value.trim();
+  const description = document.getElementById('edit-goal-desc').value.trim();
+  const deadline = document.getElementById('edit-goal-deadline').value;
+  const maxPoints = parseInt(document.getElementById('edit-goal-points').value, 10);
+
+  if (!title || !deadline || isNaN(maxPoints) || maxPoints < 1) {
+    return showMessage('Preencha todos os campos corretamente.', 'error');
+  }
+
+  const goalId = pendingEdit.goalId;
+  closeEditModal();
+
+  const { error } = await db.from('goals').update({
+    title: title,
+    description: description || null,
+    deadline: deadline,
+    max_points: maxPoints
+  }).eq('id', goalId);
+
+  if (error) return showMessage('Erro ao editar: ' + error.message, 'error');
+
+  showMessage('Meta atualizada com sucesso!', 'success');
+  loadAllGoals();
+  loadSectorComparisonAndRanking();
+}
+
+// ==================== EXCLUIR META ====================
+async function openDeleteModal(goalId) {
+  // Busca no cache primeiro (comparando como string para evitar problema de tipo)
+  let goal = cachedAllGoals.find(g => String(g.id) === String(goalId));
+
+  // Se não achar no cache, busca direto no banco (correção do bug "Meta não encontrada no cache")
+  if (!goal) {
+    const { data, error } = await db
+      .from('goals')
+      .select('*, profiles!goals_user_id_fkey(id, full_name, email, sector, role)')
+      .eq('id', goalId)
+      .single();
+
+    if (error || !data) {
+      console.error('Erro ao buscar meta:', error);
+      return showMessage('Meta não encontrada.', 'error');
+    }
+    goal = data;
+  }
+
+  // Permissão: diretoria/master → tudo; supervisor → só o que ELE criou
+  if (!canEditOrDeleteGoal(goal)) {
+    return showMessage('Você não tem permissão para excluir esta meta. Apenas quem a criou ou a diretoria pode excluir.', 'error');
+  }
+
+  pendingDelete = { goalId: goal.id };
+  document.getElementById('delete-modal-info').innerHTML =
+    `Excluir a meta <strong>"${escapeHtml(goal.title)}"</strong> de
+     <strong>${escapeHtml(goal.profiles?.full_name || '')}</strong>?`;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  pendingDelete = null;
+  document.getElementById('delete-modal').classList.add('hidden');
+}
+
+async function confirmDeleteGoal() {
+  if (!pendingDelete) return;
+  const { goalId } = pendingDelete;
+  closeDeleteModal();
+
+  const { error } = await db.from('goals').delete().eq('id', goalId);
+  if (error) {
+    if (/row-level security|permission/i.test(error.message)) {
+      return showMessage('Você não tem permissão para excluir esta meta.', 'error');
+    }
+    return showMessage('Erro ao excluir: ' + error.message, 'error');
+  }
+
+  showMessage('Meta excluída com sucesso.', 'success');
+  loadAllGoals();
+  loadGoalAssignmentOptions();
+  loadSectorComparisonAndRanking();
+}
+
+// ==================== RANKING + COMPARATIVO ====================
+async function loadSectorComparisonAndRanking() {
+  const rankingContainer = document.getElementById('ranking-container');
+  const compareContainer = document.getElementById('sector-compare-container');
+  const adhContainer = document.getElementById('adherence-container');
+  rankingContainer.innerHTML = '<div class="rank-empty">Carregando ranking…</div>';
+  compareContainer.innerHTML = '<div class="rank-empty">Carregando comparativo…</div>';
+  adhContainer.innerHTML = '<div class="rank-empty">Carregando aderência…</div>';
+
+  const { data: people, error: pErr } = await db
+    .from('profiles')
+    .select('id, full_name, email, role, sector, is_master')
+    .in('role', ['employee','colaborador','supervisor']);
+
+  if (pErr) {
+    rankingContainer.innerHTML = `<div class="rank-empty" style="color:#C8102E;">Erro: ${escapeHtml(pErr.message)}</div>`;
+    compareContainer.innerHTML = ''; adhContainer.innerHTML = '';
+    return;
+  }
+  if (!people || people.length === 0) {
+    rankingContainer.innerHTML = '<div class="rank-empty">Nenhum usuário cadastrado.</div>';
+    compareContainer.innerHTML = ''; adhContainer.innerHTML = '';
+    return;
+  }
+
+  const { data: certs, error: cErr } = await db
+    .from('certificates').select('user_id, points_awarded, status');
+
+  if (cErr) {
+    rankingContainer.innerHTML = `<div class="rank-empty" style="color:#C8102E;">Erro: ${escapeHtml(cErr.message)}</div>`;
+    compareContainer.innerHTML = ''; adhContainer.innerHTML = '';
+    return;
+  }
+
+  const statsMap = {};
+  people.forEach(p => {
+    statsMap[p.id] = { points: 0, certCount: 0, total: 0, approved: 0, rejected: 0, pending: 0 };
+  });
+
+  (certs || []).forEach(c => {
+    const st = statsMap[c.user_id];
+    if (!st) return;
+    st.total += 1;
+    if (c.status === 'approved') {
+      st.points += (c.points_awarded || 0);
+      st.certCount += 1;
+      st.approved += 1;
+    } else if (c.status === 'rejected') {
+      st.rejected += 1;
+    } else if (c.status === 'pending') {
+      st.pending += 1;
+    }
+  });
+
+  const ranking = people.map(p => {
+    const st = statsMap[p.id];
+    const decided = st.approved + st.rejected;
+    const adherence = decided > 0 ? Math.round((st.approved / decided) * 100) : null;
+    return {
+      id: p.id,
+      full_name: p.full_name || p.email || 'Sem nome',
+      email: p.email || '',
+      role: (p.role || '').toLowerCase(),
+      isMaster: p.is_master === true,
+      sector: p.sector || null,
+      sectorKey: normalizeSector(p.sector),
+      points: st.points,
+      certCount: st.certCount,
+      totalCerts: st.total,
+      approved: st.approved,
+      rejected: st.rejected,
+      pending: st.pending,
+      adherence: adherence
+    };
+  });
+
+  cachedRankingData = ranking;
+  renderRankingTable(ranking);
+  renderSectorComparison(ranking);
+  renderAdherence(ranking);
+}
+
+function adherenceBadge(adherence) {
+  if (adherence === null || adherence === undefined) {
+    return '<span class="adherence-badge none">—</span>';
+  }
+  if (adherence >= 80) return `<span class="adherence-badge high">${adherence}%</span>`;
+  if (adherence >= 50) return `<span class="adherence-badge mid">${adherence}%</span>`;
+  return `<span class="adherence-badge low">${adherence}%</span>`;
+}
+
+function renderRankingTable(ranking) {
+  const container = document.getElementById('ranking-container');
+  const filter = currentSectorFilter;
+
+  let filtered = filter === 'all' ? ranking : ranking.filter(r => r.sectorKey === filter);
+
+  if (isSupervisor && !canManageAll) {
+    const mySec = normalizeSector(currentProfile.sector);
+    filtered = filtered.filter(r => r.sectorKey === mySec);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="rank-empty">Nenhum colaborador encontrado com esse filtro.</div>';
+    return;
+  }
+
+  const sorted = [...filtered].sort((a, b) =>
+    b.points - a.points || a.full_name.localeCompare(b.full_name)
+  );
+
+  const rows = sorted.map((r, idx) => {
+    const pos = idx + 1;
+    let medalClass = '', medalLabel = pos;
+    if (pos === 1) { medalClass = 'gold';   medalLabel = '🥇'; }
+    else if (pos === 2) { medalClass = 'silver'; medalLabel = '🥈'; }
+    else if (pos === 3) { medalClass = 'bronze'; medalLabel = '🥉'; }
+
+    const isSup = r.role === 'supervisor';
+    const roleTag = isSup ? ' ' + getRoleBadge(r.role, r.isMaster) : '';
+
+    return `
+      <tr class="${isSup ? 'is-supervisor' : ''}">
+        <td style="width:60px;"><span class="rank-pos ${medalClass}">${medalLabel}</span></td>
+        <td>
+          <div class="rank-name">${escapeHtml(r.full_name)}${roleTag}</div>
+          ${r.email ? `<div class="rank-email">${escapeHtml(r.email)}</div>` : ''}
+        </td>
+        <td style="width:130px;">${getSectorBadge(r.sector)}</td>
+        <td style="text-align:center; width:130px;">
+          <span class="rank-cert-count">${r.certCount} aprovado${r.certCount === 1 ? '' : 's'}</span>
+        </td>
+        <td style="text-align:center; width:110px;">${adherenceBadge(r.adherence)}</td>
+        <td style="text-align:right; width:100px;">
+          <span class="rank-points">${r.points} pts</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ranking-table-wrapper">
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Colaborador</th>
+            <th>Setor</th>
+            <th style="text-align:center;">Certificados</th>
+            <th style="text-align:center;">Aderência</th>
+            <th style="text-align:right;">Pontos</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function applySectorFilter() {
+  currentSectorFilter = document.getElementById('ranking-sector-filter').value;
+  renderRankingTable(cachedRankingData);
+}
+
+function renderSectorComparison(ranking) {
+  const container = document.getElementById('sector-compare-container');
+
+  const sectorData = {};
+  SECTORS.forEach(s => { sectorData[s.key] = { total: 0, count: 0, topName: null, topPoints: 0 }; });
+
+  const mySector = isSupervisor ? normalizeSector(currentProfile?.sector) : null;
+
+  ranking.forEach(r => {
+    const key = r.sectorKey;
+    if (!key || !sectorData[key]) return;
+    if (r.role === 'supervisor') { sectorData[key].count += 1; return; }
+    sectorData[key].total += r.points;
+    sectorData[key].count += 1;
+    if (r.points > sectorData[key].topPoints) {
+      sectorData[key].topPoints = r.points;
+      sectorData[key].topName = r.full_name;
+    }
+  });
+
+  const ordered = SECTORS.map(s => ({
+    ...s,
+    total: sectorData[s.key].total,
+    count: sectorData[s.key].count,
+    avg: sectorData[s.key].count > 0 ? (sectorData[s.key].total / sectorData[s.key].count) : 0,
+    topName: sectorData[s.key].topName,
+    topPoints: sectorData[s.key].topPoints
+  })).sort((a, b) => b.total - a.total);
+
+  const maxTotal = Math.max(...ordered.map(s => s.total), 1);
+  const rankLabels = ['1º', '2º', '3º'];
+  const rankClasses = ['gold', 'silver', 'bronze'];
+
+  const cards = ordered.map((s, idx) => {
+    const rankLabel = rankLabels[idx] || `${idx + 1}º`;
+    const rankClass = rankClasses[idx] || '';
+    const barWidth = (maxTotal > 0) ? (s.total / maxTotal) * 100 : 0;
+    const avgFormatted = s.avg.toFixed(1).replace('.', ',');
+    const isMine = mySector && s.key === mySector;
+
+    const topHtml = s.topName
+      ? `<span class="top-medal">🥇</span>
+         <span class="top-name">${escapeHtml(s.topName)}</span>
+         <span class="top-points">${s.topPoints} pts</span>`
+      : `<span>Sem pontuações ainda</span>`;
+
+    return `
+      <div class="sector-compare-card ${s.cls} ${isMine ? 'mine' : ''}">
+        <div class="sector-compare-header">
+          <span class="sector-badge ${s.cls}">${s.label}</span>
+          <span class="sector-compare-rank ${rankClass}">${rankLabel}</span>
+        </div>
+        <div class="sector-compare-total">${s.total}<span class="pts-suffix">pts</span></div>
+        <div class="sector-compare-label">Total de pontos do setor (colaboradores)</div>
+        <div class="sector-compare-bar">
+          <div class="sector-compare-bar-fill" style="width: ${barWidth}%"></div>
+        </div>
+        <div class="sector-compare-stats">
+          <div>
+            <span class="stat-label">Pessoas</span>
+            <span class="stat-value">${s.count}</span>
+          </div>
+          <div>
+            <span class="stat-label">Média</span>
+            <span class="stat-value">${avgFormatted}</span>
+          </div>
+        </div>
+        <div class="sector-compare-top ${s.topName ? '' : 'empty'}">${topHtml}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `<div class="sector-compare-grid">${cards}</div>`;
+}
+
+function renderAdherence(ranking) {
+  const container = document.getElementById('adherence-container');
+
+  const totalDecided = ranking.reduce((s, r) => s + (r.approved + r.rejected), 0);
+  const totalApproved = ranking.reduce((s, r) => s + r.approved, 0);
+  const generalAdh = totalDecided > 0 ? Math.round((totalApproved / totalDecided) * 100) : null;
+
+  const bySetor = {};
+  SECTORS.forEach(s => { bySetor[s.key] = { approved: 0, rejected: 0, label: s.label, cls: s.cls }; });
+  ranking.forEach(r => {
+    if (!r.sectorKey || !bySetor[r.sectorKey]) return;
+    bySetor[r.sectorKey].approved += r.approved;
+    bySetor[r.sectorKey].rejected += r.rejected;
+  });
+
+  const setorCards = SECTORS.map(s => {
+    const d = bySetor[s.key];
+    const dec = d.approved + d.rejected;
+    const adh = dec > 0 ? Math.round((d.approved / dec) * 100) : null;
+    const color = adh === null ? '#6D6E71' : adh >= 80 ? '#158A49' : adh >= 50 ? '#B35A00' : '#A00D24';
+    const width = adh === null ? 0 : adh;
+    return `
+      <div class="adherence-card">
+        <div class="ad-sector">${s.label}</div>
+        <div class="ad-value" style="color:${color};">${adh === null ? '—' : adh + '%'}</div>
+        <div class="ad-sub">${d.approved} aprovado${d.approved === 1 ? '' : 's'} / ${dec} avaliação${dec === 1 ? '' : 'ões'}</div>
+        <div class="adherence-bar"><div class="adherence-bar-fill" style="width:${width}%; background:${color};"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  const genColor = generalAdh === null ? '#6D6E71' : generalAdh >= 80 ? '#158A49' : generalAdh >= 50 ? '#B35A00' : '#A00D24';
+  const genWidth = generalAdh === null ? 0 : generalAdh;
+
+  container.innerHTML = `
+    <div style="margin-bottom:18px; padding:16px; border-radius:12px; background:linear-gradient(135deg, #FFF9F3, #FFF3E6); border-left:4px solid #E87722;">
+      <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; color:#6D6E71; font-weight:700; margin-bottom:4px;">Aderência Geral da Empresa</div>
+      <div style="font-size:2rem; font-weight:800; color:${genColor}; line-height:1;">${generalAdh === null ? '—' : generalAdh + '%'}</div>
+      <div style="font-size:0.78rem; color:#6D6E71; margin-top:4px;">${totalApproved} aprovados / ${totalDecided} avaliações concluídas</div>
+      <div class="adherence-bar" style="margin-top:12px;"><div class="adherence-bar-fill" style="width:${genWidth}%; background:${genColor};"></div></div>
+    </div>
+    <div class="adherence-grid">${setorCards}</div>
+  `;
+}
+
+// ==================== PENDENTES / VALIDADOS ====================
+async function loadPendingCertificates() {
+  const { data: certs, error } = await db
+    .from('certificates')
+    .select('*, profiles!certificates_user_id_fkey(full_name, sector, role, is_master), goals(title, deadline, max_points, goal_type)')
+    .eq('status', 'pending')
+    .order('submitted_at', { ascending: true });
+
+  const list = document.getElementById('pending-certs-list');
+  if (error) { list.innerHTML = `<p style="color:#C8102E;">Erro: ${error.message}</p>`; return; }
+  if (!certs || certs.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhum certificado pendente.</p>';
+    return;
+  }
+
+  let visible = certs;
+  if (isSupervisor && !canManageAll) {
+    const mySec = normalizeSector(currentProfile.sector);
+    visible = certs.filter(c => normalizeSector(c.profiles?.sector) === mySec);
+  }
+
+  pendingCertsCache = {};
+  for (let c of visible) {
+    const { data } = await db.storage.from('certificates').createSignedUrl(c.file_url, 60 * 60);
+    c.signedUrl = data?.signedUrl || '#';
+    pendingCertsCache[c.id] = c;
+  }
+
+  if (visible.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhum certificado pendente no seu escopo.</p>';
+    return;
+  }
+
+  list.innerHTML = visible.map(c => {
+    const isSup = (c.profiles?.role || '').toLowerCase() === 'supervisor';
+    const roleTag = isSup ? ' ' + getRoleBadge(c.profiles.role, c.profiles.is_master) : '';
+    return `
+      <div class="cert-item">
+        <div class="info">
+          <div class="title">
+            ${escapeHtml(c.profiles?.full_name || 'Colaborador')}${roleTag}
+            ${getSectorBadge(c.profiles?.sector)}
+            — ${escapeHtml(c.goals?.title || 'Meta')}
+          </div>
+          <div class="meta">Enviado em ${formatDate(c.submitted_at)}</div>
+          <div class="meta">
+            <a href="${c.signedUrl}" target="_blank" style="color: #E87722; font-weight: bold; text-decoration: none;">📄 Ver ${escapeHtml(c.file_name || 'certificado')}</a>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="small success" onclick="openApproveModal('${c.id}')">✅ Aprovar</button>
+          <button class="small danger" onclick="validateCert('${c.id}', 'rejected')">❌ Rejeitar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadValidatedCertificates() {
+  const { data: certs } = await db
+    .from('certificates')
+    .select('*, profiles!certificates_user_id_fkey(full_name, sector, role, is_master), goals(title)')
+    .neq('status', 'pending')
+    .order('validated_at', { ascending: false })
+    .limit(30);
+
+  const list = document.getElementById('validated-certs-list');
+  if (!certs || certs.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhuma validação realizada.</p>';
+    return;
+  }
+
+  let visible = certs;
+  if (isSupervisor && !canManageAll) {
+    const mySec = normalizeSector(currentProfile.sector);
+    visible = certs.filter(c => normalizeSector(c.profiles?.sector) === mySec);
+  }
+
+  if (visible.length === 0) {
+    list.innerHTML = '<p style="color:#6D6E71;">Nenhuma validação no seu escopo.</p>';
+    return;
+  }
+
+  list.innerHTML = visible.map(c => {
+    const isSup = (c.profiles?.role || '').toLowerCase() === 'supervisor';
+    const roleTag = isSup ? ' ' + getRoleBadge(c.profiles.role, c.profiles.is_master) : '';
+    return `
+      <div class="cert-item">
+        <div class="info">
+          <div class="title">
+            ${escapeHtml(c.profiles?.full_name || '')}${roleTag}
+            ${getSectorBadge(c.profiles?.sector)}
+            — ${escapeHtml(c.goals?.title || '')}
+          </div>
+          <div class="meta">Validado em ${formatDate(c.validated_at)}</div>
+        </div>
+        <div>
+          <span class="badge ${c.status}">${c.status === 'approved' ? 'Aprovado' : 'Rejeitado'}</span>
+          ${c.status === 'approved' ? `<strong style="margin-left:8px; color:#158A49;">+${c.points_awarded} pts</strong>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== MODAL APROVAÇÃO ====================
+function openApproveModal(certId) {
+  const cert = pendingCertsCache[certId];
+  if (!cert) return showMessage('Certificado não encontrado no cache.', 'error');
+
+  pendingApproval = { certId };
+  const maxPts = cert.goals?.max_points ?? 10;
+
+  const sectorHtml = cert.profiles?.sector ? ` ${getSectorBadge(cert.profiles.sector)}` : '';
+  document.getElementById('modal-info').innerHTML =
+    `${escapeHtml(cert.profiles?.full_name || 'Colaborador')}${sectorHtml} — ${escapeHtml(cert.goals?.title || 'Meta')}`;
+
+  const pointsInput = document.getElementById('modal-points');
+  pointsInput.value = maxPts;
+  pointsInput.max = maxPts;
+  document.getElementById('modal-hint').textContent =
+    `Nota máxima da meta: ${maxPts} pontos (deixe o valor padrão ou ajuste)`;
+
+  document.getElementById('approve-modal').classList.remove('hidden');
+  setTimeout(() => pointsInput.focus(), 60);
+}
+
+function closeApproveModal() {
+  pendingApproval = null;
+  document.getElementById('approve-modal').classList.add('hidden');
+}
+
+async function confirmApprove() {
+  if (!pendingApproval) return;
+  const pointsInput = document.getElementById('modal-points');
+  const points = parseInt(pointsInput.value, 10);
+  const maxPts = parseInt(pointsInput.max, 10);
+
+  if (isNaN(points) || points < 0) return showMessage('Informe uma pontuação válida.', 'error');
+  if (!isNaN(maxPts) && points > maxPts) return showMessage(`A nota não pode ultrapassar ${maxPts} pontos.`, 'error');
+
+  const certId = pendingApproval.certId;
+  closeApproveModal();
+  await validateCert(certId, 'approved', points);
+}
+
+async function validateCert(certId, status, manualPoints = null) {
+  const { data: cert } = await db
+    .from('certificates').select('*, goals(max_points, deadline)')
+    .eq('id', certId).single();
+  if (!cert) return showMessage('Certificado não encontrado.', 'error');
+
+  let points = 0;
+  if (status === 'approved') {
+    const maxPts = cert.goals?.max_points ?? 10;
+    points = (manualPoints !== null && manualPoints !== undefined && !isNaN(manualPoints))
+      ? manualPoints : maxPts;
+  }
+
+  const { error } = await db.from('certificates').update({
+    status: status,
+    validated_at: new Date().toISOString(),
+    validated_by: currentUser.id,
+    points_awarded: points
+  }).eq('id', certId);
+
+  if (error) return showMessage('Erro ao validar: ' + error.message, 'error');
+
+  showMessage(status === 'approved'
+    ? `Certificado aprovado com ${points} ponto(s)!`
+    : 'Certificado rejeitado!', 'success');
+
+  loadSectorComparisonAndRanking();
+  loadPendingCertificates();
+  loadValidatedCertificates();
+}
+
+// ==================== INIT ====================
+db.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) loadUser();
+  if (event === 'SIGNED_OUT') {
+    document.getElementById('login-view').classList.remove('hidden');
+    document.getElementById('employee-view').classList.add('hidden');
+    document.getElementById('management-view').classList.add('hidden');
+    document.getElementById('approve-modal').classList.add('hidden');
+    document.getElementById('delete-modal').classList.add('hidden');
+    document.getElementById('edit-modal').classList.add('hidden');
+  }
+});
+
+loadUser();
+
+</script>
+</body>
+</html>
