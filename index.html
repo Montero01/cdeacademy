@@ -1070,7 +1070,7 @@ async function loadUser() {
     document.getElementById('management-view').classList.remove('hidden');
     document.getElementById('employee-view').classList.add('hidden');
     document.getElementById('login-view').classList.add('hidden');
-  updateAcademyFabVisibility();
+    updateAcademyFabVisibility();
 
     const titleEl = document.getElementById('mgmt-title');
     if (isMaster)         titleEl.textContent = '👑 Painel Master';
@@ -1136,6 +1136,7 @@ async function loadUser() {
     document.getElementById('emp-user-info').innerHTML =
       `${escapeHtml(profile.full_name)} (Colaborador) ${getSectorBadge(profile.sector)}`;
     loadEmployeeData();
+    updateAcademyFabVisibility();
   }
 }
 
