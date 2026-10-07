@@ -823,7 +823,7 @@
 
     <div class="sidebar-footer">
       <button class="logout-btn" onclick="logout()">
-        <span>🚪</span><span>Sair da conta</span>
+        <span>🚪</span><span>Sair da Conta</span>
       </button>
     </div>
   </aside>
@@ -842,7 +842,6 @@
 
       <div class="topbar-icons">
         <button class="icon-btn hide-mobile" title="Modo escuro (em breve)">🌙</button>
-        <button class="icon-btn hide-mobile" title="Segurança">🛡️</button>
         <button class="icon-btn hide-mobile" title="Favoritos">⭐</button>
         <button class="icon-btn hide-mobile" title="Mensagens">✉️<span class="badge-dot"></span></button>
         <button class="icon-btn hide-mobile" title="Perfil">👤</button>
@@ -855,7 +854,7 @@
 
     <footer class="main-footer">
       Sistema desenvolvido por <span class="footer-dev">Gabriel M.</span> para
-      <span class="footer-brand">CDE Blindex AM</span> · v1.0
+      <span class="footer-brand">CDE Blindex AM</span> ·
     </footer>
   </div>
 </div>
@@ -877,7 +876,7 @@
 // ==================== CONFIG ====================
 const SUPABASE_URL = 'https://whjyvphamkbjcrdzhzoc.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_EyZgqDQTSV-M-O3_l63V7Q_LFcFDl69';
-const PDI_URL = '/';   // ⚠️ troque pela URL real do PDI
+const PDI_URL = 'https://montero01.github.io/cdeacademy/';   // ⚠️ troque pela URL real do PDI
 
 const { createClient } = supabase;
 // ⚠️ Mesmo storageKey usado no PDI → compartilha sessão
@@ -1123,7 +1122,7 @@ function renderHome() {
       <span class="section-sub">Treinamentos que foram liberados para você</span>
     </div>
 
-    ${enrolled.length === 0 ? renderEmpty('📭', 'Nenhum curso liberado ainda. Aguarde seu supervisor atribuir um treinamento.') : `<div class="courses-grid">${enrolled.map(renderCourseCard).join('')}</div>`}
+    ${enrolled.length === 0 ? renderEmpty('📭', 'Nenhum curso liberado ainda. Aguarde um supervisor atribuir o(s) treinamento(s).') : `<div class="courses-grid">${enrolled.map(renderCourseCard).join('')}</div>`}
 
     ${allCourses.length > 0 && enrolled.length < allCourses.length ? `
       <div class="section-header">
